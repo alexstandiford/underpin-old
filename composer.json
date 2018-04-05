@@ -1,0 +1,13 @@
+{
+    "name": "designframe/underpin",
+    "description": "Core functionality for the underpin modular framework",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Standiford",
+            "email": "alex@designframesolutions.com"
+        }
+    ],
+    "require": {}
+}
