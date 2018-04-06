@@ -9,5 +9,17 @@
             "email": "alex@designframesolutions.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "underpin\\config\\": "/config/",
+            "underpin\\core\\": "/lib/core/",
+            "underpin\\admin\\": "/lib/admin/"
+        },
+        "files": [
+            "Underpin.php"
+        ]
+    }
 }
