@@ -53,18 +53,6 @@ abstract class Core{
   }
 
   /**
-   * Checks to see if the specified plugin is installed
-   * Generally not the best way to determine this, but is occasionally necessary
-   * @param $plugin
-   *
-   * @return bool
-   */
-  public function isPluginInstalled($plugin){
-    $plugins = get_option('active_plugins');
-    return array_search($plugin,$plugins) !== false;
-  }
-
-  /**
    * Used to return a result for API endpoints. Handles proper error returning when there are any errors
    *
    * @param $result
