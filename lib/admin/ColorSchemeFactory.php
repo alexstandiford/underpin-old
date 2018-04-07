@@ -23,14 +23,47 @@ class ColorSchemeFactory extends Core{
   private $customizerSplitValues = false;
   private $splitValues = false;
 
-  public function __construct(){
+  public function __construct($location = 'auto'){
+    $this->customizerFileLocation = $this->locateCssDirFile('customizer-variables.scss', $location);
     parent::__construct();
-    $this->customizerFileLocation = UNDERPIN_ASSETS_DIR.'css/customizer-variables.scss';
-    if($this->fileExists($this->customizerFileLocation)){
+
+    if(!$this->hasErrors()){
       $this->customizerFile = file_get_contents($this->customizerFileLocation);
       preg_match_all('/(?<=\$)(.*)(?=!)/', $this->customizerFile, $this->variables, PREG_PATTERN_ORDER, 0);
       $this->variables = $this->variables[0];
     }
+  }
+
+  /**
+   * Locates a CSS Dir file
+   * Checks to see if there is an override CSS file located in the website directory
+   *
+   * @param string $file - File name to load in
+   * @param string $location - The location to check. Defaults to auto.
+   *
+   * @return mixed|string
+   */
+  public static function locateCssDirFile($file = 'style.css', $location = 'auto'){
+    switch($location){
+      case 'site':
+        $file_location = CssUpdater::getCssDirFile($file);
+        break;
+      //If i'm configured to locate the network css (inside the theme file)
+      case 'network':
+        $file_location = UNDERPIN_ASSETS_DIR.'css/'.$file;
+        break;
+      //If the configured file to locate needs to be automatically found
+      default:
+        if(file_exists(CssUpdater::getCssDirFile($file))){
+          $file_location = CssUpdater::getCssDirFile($file);
+        }
+        else{
+          $file_location = UNDERPIN_ASSETS_DIR.'css/'.$file;
+        }
+        break;
+    }
+
+    return $file_location;
   }
 
   /**
@@ -70,7 +103,6 @@ class ColorSchemeFactory extends Core{
   public function splitValues(){
     if($this->splitValues === false){
       $this->splitValues = [];
-
       foreach($this->variables as $value){
         $exploded_value = explode(':', $value);
         $css_selector = trim($exploded_value[0]);
@@ -84,6 +116,7 @@ class ColorSchemeFactory extends Core{
 
   /**
    * Function to call to add the customizer fields to the theme
+   *
    * @param $configs
    *
    * @return mixed
@@ -105,5 +138,6 @@ class ColorSchemeFactory extends Core{
    * @return mixed
    */
   protected function checkForErrors(){
+    if(!$this->fileExists($this->customizerFileLocation)) return $this->throwError('ColorSchemeFactory01', 'The file located at '.$this->customizerFileLocation.' does not exist.');
   }
 }

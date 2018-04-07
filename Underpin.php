@@ -10,6 +10,8 @@ namespace underpin\core;
 
 use DOMDocument;
 use underpin\admin\ColorSchemeFactory;
+use underpin\admin\CssSynchronizer;
+use underpin\admin\CssUpdater;
 use underpin\config\Customizer;
 use underpin\config\ImageSizes;
 use underpin\config\Widgets;
@@ -78,9 +80,9 @@ class Underpin{
    */
   private static $admin_files = [
     'ColorSchemeFactory.php',      //Loads in the color scheme customizations
-    'ColorSchemeUpdater.php',      //Loads in the color scheme customizations
+    'CssUpdater.php',              //Loads in the CSS Updater
+    'CssSynchronizer.php',         //Handles CSS file syncing between theme and site css files
   ];
-
 
 
   /**
@@ -119,7 +121,8 @@ class Underpin{
       do_action('underpin_init');
       self::$instance->_defineThemeSupports();
       self::$instance->_includeEach(UNDERPIN_CORE_PATH, self::$core_files);
-      if(is_admin() || is_customize_preview()) self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$admin_files);
+      self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$admin_files);
+      self::$instance->_includeAutoloader();
       do_action('underpin_after_core_init');
       self::$instance->_includeEach(UNDERPIN_CONFIG_PATH, self::$config_files);
       self::$instance->_loadCoreConfigurations();
@@ -163,7 +166,7 @@ class Underpin{
       /**
        * Runs the updater to recompile CSS when the customizer is saved
        */
-      add_action('customize_save', 'underpin\admin\ColorSchemeUpdater::runUpdater');
+      add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
 
       /**
        * Handle preview CSS for color scheme customizer
@@ -181,14 +184,6 @@ class Underpin{
    */
   private function _includeAutoloader(){
     if(file_exists(UNDERPIN_COMPOSER_PATH.'autoload.php')) require_once(trailingslashit(UNDERPIN_COMPOSER_PATH).'autoload.php');
-  }
-
-  public function setUpdaterOptions(){
-    return [
-      'branch_switch'             => '0',
-      'github_access_token'       => '7637f54c17517f1e0e7de9ef256946efc67704d1',
-      'my-repo-slug'              => 'https://github.com/alexstandiford/brewio',
-    ];
   }
 
   /**
@@ -265,7 +260,15 @@ class Underpin{
    * Loads in the CSS file
    */
   public function _loadStyles(){
-    wp_enqueue_style('underpin_style', get_stylesheet_directory_uri().'/build/assets/style.css');
+    if(file_exists(CssUpdater::getCssDirFile())){
+      $css_url = CssUpdater::getCssFileUrl();
+      //Sync the CSS file if the original file was updated recently
+      CssSynchronizer::syncCssFile();
+    }
+    else{
+      $css_url = get_stylesheet_directory_uri().'/build/assets/style.css';
+    }
+    wp_enqueue_style('underpin_style', $css_url);
   }
 
   /**
@@ -275,11 +278,12 @@ class Underpin{
   public function updatePreviewCss(){
     if(!empty ($GLOBALS['wp_customize'])){
       $color_scheme = new ColorSchemeFactory();
-      $css = file_Get_contents(get_template_directory().'/build/assets/style.css');
+      $css = file_exists(CssUpdater::getCssDirFile()) ? CssUpdater::getCssDirFile() : get_stylesheet_directory().'/build/assets/style.css';
+      $css = file_get_contents($css);
       foreach($color_scheme->splitValues() as $selector => $old_value){
         $new_value = get_theme_mod('underpin_color_scheme_'.$selector);
         if($old_value != $new_value){
-          $css = str_replace($old_value,$new_value,$css);
+          $css = str_replace($old_value, $new_value, $css);
         }
       }
       echo '<style id="underpin-color-scheme">'.$css.'</style>';
@@ -292,24 +296,22 @@ class Underpin{
    */
   private function _defineConstants($dir){
     $dir = untrailingslashit($dir);
-    define('UNDERPIN_ROOT_URL',network_site_url('wp-content/mu-plugins/'));
+    define('UNDERPIN_ROOT_URL', network_site_url('wp-content/mu-plugins/'));
     define('UNDERPIN_CONFIG_PATH', $dir.'/underpin/config/');
     define('UNDERPIN_LIB_PATH', $dir.'/underpin/lib/');
     define('UNDERPIN_CORE_PATH', $dir.'/underpin/lib/core/');
     define('UNDERPIN_COMPOSER_PATH', $dir.'/vendor/');
-    define('UNDERPIN_ASSETS_DIR', $dir.'/underpin/assets/');
+    define('UNDERPIN_ASSETS_DIR', get_stylesheet_directory().'/assets/');
     define('UNDERPIN_PREFIX', 'underpin');
   }
 
-  private function setupCustomizer(){
+  public function setupCustomizer(){
     $color_scheme = new ColorSchemeFactory();
     add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
   }
 
   private function _loadCoreConfigurations(){
-    if(is_customize_preview()){
-      $this->setupCustomizer();
-    }
+    $this->setupCustomizer();
     new imageSizes(self::$image_sizes);
     new Customizer(self::$customizer);
     new Widgets(self::$widgets);
