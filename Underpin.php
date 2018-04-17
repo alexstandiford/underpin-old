@@ -296,6 +296,7 @@ class Underpin{
    */
   private function _defineConstants($dir){
     $dir = untrailingslashit($dir);
+    define('UNDERPIN_ROOT_DIR', $dir);
     define('UNDERPIN_ROOT_URL', network_site_url('wp-content/mu-plugins/'));
     define('UNDERPIN_CONFIG_PATH', $dir.'/underpin/config/');
     define('UNDERPIN_LIB_PATH', $dir.'/underpin/lib/');

@@ -339,6 +339,24 @@ abstract class ModuleLoader extends Core{
   }
 
   /**
+   * Gets the module object based on the provided key
+   * @param $module_key
+   *
+   * @return bool|mixed
+   */
+  public static function getModule($module_key){
+    if(self::moduleIsLoaded($module_key)){
+      return self::$modules[$module_key];
+    }
+
+    return false;
+  }
+
+  public static function getModules(){
+    return self::$modules;
+  }
+
+  /**
    * Checks to see if the specified module is a flexible field
    *
    * @param $module

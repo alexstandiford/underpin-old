@@ -29,7 +29,7 @@ class TemplateLoader extends Core{
     $this->location = (string)$location;
     $this->type = (string)$type;
     $this->module = strtolower(sanitize_title_with_dashes($module));
-    self::$buffer = $args['load_as_buffer'] !== false  ? self::$buffer = '' : self::$buffer = false;
+    self::$buffer = $args['load_as_buffer'] !== false ? self::$buffer = '' : self::$buffer = false;
     $this->args = $args;
     parent::__construct();
   }
@@ -101,6 +101,7 @@ class TemplateLoader extends Core{
       $ebl_buffer .= self::$buffer;
       ob_start();
     }
+
     return $ebl_buffer;
   }
 
@@ -182,13 +183,19 @@ class TemplateLoader extends Core{
     return $classes;
   }
 
+  /**
+   * Sets the default classes for modules
+   * @return mixed
+   */
   private function getModuleDefaultClasses(){
     $default_fields = get_sub_field('module_settings');
     $module_default_classes = [
       $this->prefix('flex-module', '-'),
     ];
-    foreach($default_fields as $field_name => $default_field){
-      $module_default_classes[] = str_replace('_', '-', 'mod--'.$field_name.'-'.$default_field);
+    if($default_fields){
+      foreach($default_fields as $field_name => $default_field){
+        $module_default_classes[] = str_replace('_', '-', 'mod--'.$field_name.'-'.$default_field);
+      }
     }
 
     return apply_filters($this->prefix('module_default_wrapper_classes'), $module_default_classes, $module_default_classes);

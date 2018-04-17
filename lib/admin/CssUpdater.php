@@ -202,8 +202,8 @@ class CssUpdater extends Core{
       $map = json_decode(file_get_contents(get_stylesheet_directory().'/build/assets/style.css.map'));
 
       foreach($map->sources as $source){
-        preg_match('/\/app.*|\.\/.*/', $source, $match);
-        $this->sources[] = strpos($match[0], '.') === 0 ? get_stylesheet_directory().substr($match[0], 1) : $match[0];
+        preg_match('/\/vendor.*|\.\/.*/', $source, $match);
+        $this->sources[] = strpos($match[0], '.') === 0 ? get_stylesheet_directory().substr($match[0], 1) : UNDERPIN_ROOT_DIR.$match[0];
       }
     }
 

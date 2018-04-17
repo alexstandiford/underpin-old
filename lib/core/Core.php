@@ -21,7 +21,6 @@ abstract class Core{
     do_action($this->prefix('after_core'), $this);
   }
 
-
   /**
    * Adds an error to the array of errors, and triggers a PHP warning
    *
@@ -156,10 +155,17 @@ abstract class Core{
    *
    * @return mixed
    */
-  public function updateOption($option, $value, $autoload = null){
+  public function updateOption($option, $value, $autoload = null, $blog_id = false){
     $option = $this->prefix(str_replace('-', '_', sanitize_title_with_dashes($option)));
 
-    return update_option($option, $value, $autoload);
+    if(is_multisite() && is_int($blog_id)){
+      $result = update_blog_option($blog_id, $option, $value);
+    }
+    else{
+      $result = update_option($option, $value, $autoload);
+    }
+
+    return $result;
   }
 
   /**
@@ -169,10 +175,17 @@ abstract class Core{
    *
    * @return bool
    */
-  public function deleteOption($option){
+  public function deleteOption($option,$blog_id = false){
     $option = $this->prefix(str_replace('-', '_', sanitize_title_with_dashes($option)));
 
-    return delete_option($option);
+    if(is_multisite() && is_int($blog_id)){
+      $result = delete_blog_option($blog_id,$option);
+    }
+    else{
+      $result = delete_option($option);
+    }
+
+    return $result;
   }
 
   /**
