@@ -50,7 +50,7 @@ abstract class ModuleLoader extends Core{
   private static $defaultOptionsAreSet = false;
 
   public function __construct($file){
-    $this->moduleKey = strtolower(sanitize_title_with_dashes($this->moduleName));
+    $this->moduleKey = $this->sanitizeModuleKey($this->moduleName);
     parent::__construct();
 
     if(!$this->hasErrors()){
@@ -88,6 +88,15 @@ abstract class ModuleLoader extends Core{
     }
   }
 
+  /**
+   * Sanitizes the module key for use within the loader
+   * @param $module_key
+   *
+   * @return string
+   */
+  public static function sanitizeModuleKey($module_key){
+    return strtolower(sanitize_title_with_dashes($module_key));
+  }
 
   /**
    * Loads in ACF fields.
@@ -319,6 +328,7 @@ abstract class ModuleLoader extends Core{
    * @return bool
    */
   public static function moduleIsLoaded($module_key){
+    $module_key = self::sanitizeModuleKey($module_key);
     return array_key_exists($module_key, self::$modules);
   }
 
@@ -331,6 +341,7 @@ abstract class ModuleLoader extends Core{
    * @return bool
    */
   public static function getModuleDir($module_key){
+    $module_key = self::sanitizeModuleKey($module_key);
     if(self::moduleIsLoaded($module_key)){
       return self::$modules[$module_key]['root_directory'];
     }
@@ -340,11 +351,13 @@ abstract class ModuleLoader extends Core{
 
   /**
    * Gets the module object based on the provided key
+   *
    * @param $module_key
    *
    * @return bool|mixed
    */
   public static function getModule($module_key){
+    $module_key = self::sanitizeModuleKey($module_key);
     if(self::moduleIsLoaded($module_key)){
       return self::$modules[$module_key];
     }
@@ -364,6 +377,7 @@ abstract class ModuleLoader extends Core{
    * @return bool
    */
   public static function isFlexible($module_key){
+    $module_key = self::sanitizeModuleKey($module_key);
     return self::$modules[$module_key]['field_type'] == 'flexField';
   }
 
