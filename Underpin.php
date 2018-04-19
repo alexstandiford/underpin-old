@@ -149,6 +149,11 @@ class Underpin{
       add_action('wp_enqueue_scripts', [self::$instance, '_loadStyles']);
 
       /**
+       * Removes ACF from the admin area
+       */
+      if(!is_super_admin()) add_filter('acf/settings/show_admin', '__return_false');
+
+      /**
        * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
        */
       add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
