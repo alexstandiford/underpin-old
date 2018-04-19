@@ -350,6 +350,20 @@ abstract class ModuleLoader extends Core{
   }
 
   /**
+   * Gets the root URL of the specified module
+   * @param $module_key
+   *
+   * @return bool|string
+   */
+  public static function getModuleUrl($module_key){
+    if(self::moduleIsLoaded($module_key)){
+      return plugin_dir_url(self::getModuleDir($module_key));
+    }
+
+    return false;
+  }
+
+  /**
    * Gets the module object based on the provided key
    *
    * @param $module_key
