@@ -14,6 +14,7 @@ use underpin\admin\CssSynchronizer;
 use underpin\admin\CssUpdater;
 use underpin\config\Customizer;
 use underpin\config\ImageSizes;
+use underpin\config\PostTypes;
 use underpin\config\Widgets;
 
 if(!defined('ABSPATH')) exit;
@@ -62,6 +63,33 @@ class Underpin{
 //    ]
   ];
 
+  private static $post_types = [
+//    'beers' => [
+//      'name'          => 'Beers',
+//      'singular_name' => 'Beer',
+//      'menu_icon'     => 'icons/beer-icon.png',
+//      'supports'      => ['title', 'editor', 'thumbnail'],
+//      'taxonomies'    => [
+//        'style'   => [
+//          'hierarchical' => true,
+//          'meta_box_cb' => 'metaBoxAsSelect',
+//          'rewrite'     => ['slug' => 'style'],
+//          'labels'       => [
+//            'label'       => ' Style',
+//          ],
+//        ],
+//        'pairing' => [
+//          'label'         => 'Pairings',
+//        ],
+//        'tags'    => [
+//          'name'          => 'Tags',
+//          'singular_name' => 'tag',
+//          'label'         => 'Tags',
+//        ],
+//      ],
+//    ],
+  ];
+
   /**
    * All of the non-template functionality includes to grab. Pulls from the app directory.
    * @var array
@@ -93,6 +121,7 @@ class Underpin{
     'ImageSizes.php',      //Integrates image sizes
     'Customizer.php',      //Integrates Customizer Fields
     'Widgets.php',         //Integrates Sidebars
+    'PostTypes.php',       //Integrates Custom Post Types
   ];
 
   /**
@@ -283,15 +312,17 @@ class Underpin{
   public function updatePreviewCss(){
     if(!empty ($GLOBALS['wp_customize'])){
       $color_scheme = new ColorSchemeFactory();
-      $css = file_exists(CssUpdater::getCssDirFile()) ? CssUpdater::getCssDirFile() : get_stylesheet_directory().'/build/assets/style.css';
-      $css = file_get_contents($css);
-      foreach($color_scheme->splitValues() as $selector => $old_value){
-        $new_value = get_theme_mod('underpin_color_scheme_'.$selector);
-        if($old_value != $new_value){
-          $css = str_replace($old_value, $new_value, $css);
+      if($color_scheme->themeHasColorSchemeFile()){
+        $css = file_exists(CssUpdater::getCssDirFile()) ? CssUpdater::getCssDirFile() : get_stylesheet_directory().'/build/assets/style.css';
+        $css = file_get_contents($css);
+        foreach($color_scheme->splitValues() as $selector => $old_value){
+          $new_value = get_theme_mod('underpin_color_scheme_'.$selector);
+          if($old_value != $new_value){
+            $css = str_replace($old_value, $new_value, $css);
+          }
         }
+        echo '<style id="underpin-color-scheme">'.$css.'</style>';
       }
-      echo '<style id="underpin-color-scheme">'.$css.'</style>';
     }
   }
 
@@ -321,6 +352,7 @@ class Underpin{
     new imageSizes(self::$image_sizes);
     new Customizer(self::$customizer);
     new Widgets(self::$widgets);
+    new PostTypes(self::$post_types);
   }
 
   private function _includeEach($dir, $array){
