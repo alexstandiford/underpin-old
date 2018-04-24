@@ -24,10 +24,12 @@ class ColorSchemeFactory extends Core{
   private $splitValues = false;
 
   public function __construct($location = 'auto'){
-    $this->customizerFileLocation = $this->locateCssDirFile('customizer-variables.scss', $location);
+    if($this->themeHasColorSchemeFile()){
+      $this->customizerFileLocation = $this->locateCssDirFile('customizer-variables.scss', $location);
+    }
     parent::__construct();
 
-    if(!$this->hasErrors()){
+    if(!$this->hasErrors() && $this->themeHasColorSchemeFile()){
       $this->customizerFile = file_get_contents($this->customizerFileLocation);
       preg_match_all('/(?<=\$)(.*)(?=!)/', $this->customizerFile, $this->variables, PREG_PATTERN_ORDER, 0);
       $this->variables = $this->variables[0];
@@ -38,7 +40,7 @@ class ColorSchemeFactory extends Core{
    * Locates a CSS Dir file
    * Checks to see if there is an override CSS file located in the website directory
    *
-   * @param string $file - File name to load in
+   * @param string $file     - File name to load in
    * @param string $location - The location to check. Defaults to auto.
    *
    * @return mixed|string
@@ -134,13 +136,15 @@ class ColorSchemeFactory extends Core{
    * @return mixed
    */
   public function addCustomizerFields($configs){
-    $configs = Customizer::merge($configs, 'color_scheme', [
-      'title'       => 'Color Scheme',
-      'description' => "Customize this theme's color scheme, margins, and padding sizes",
-      'priority'    => 10,
-      'capability'  => 'edit_theme_options',
-      'settings'    => $this->splitValuesForCustomizer(),
-    ]);
+    if($this->themeHasColorSchemeFile()){
+      $configs = Customizer::merge($configs, 'color_scheme', [
+        'title'       => 'Color Scheme',
+        'description' => "Customize this theme's color scheme, margins, and padding sizes",
+        'priority'    => 10,
+        'capability'  => 'edit_theme_options',
+        'settings'    => $this->splitValuesForCustomizer(),
+      ]);
+    }
 
     return $configs;
   }
