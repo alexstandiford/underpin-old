@@ -45,7 +45,7 @@ class CssUpdater extends Core{
   public static function getCssFileUrl($name = 'style.css'){
     if(is_multisite()){
       $upload_dir = wp_upload_dir();
-      $dir = trailingslashit($upload_dir['baseurl']).'css/'.$name;
+      $dir = trailingslashit($upload_dir['baseurl']).'css/'.get_stylesheet().'/'.$name;
     }
     else{
       $dir = get_stylesheet_directory_uri().'/build/assets/'.$name;
@@ -64,7 +64,7 @@ class CssUpdater extends Core{
   public static function getCssDirFile($name = 'style.css'){
     if(is_multisite()){
       $upload_dir = wp_upload_dir();
-      $dir = trailingslashit($upload_dir['basedir']).'css/'.$name;
+      $dir = trailingslashit($upload_dir['basedir']).'css/'.get_stylesheet().'/'.$name;
     }
     else{
       $dir = get_stylesheet_directory().'/build/assets/'.$name;
