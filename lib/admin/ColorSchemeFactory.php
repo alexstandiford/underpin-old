@@ -63,7 +63,19 @@ class ColorSchemeFactory extends Core{
         break;
     }
 
-    return $file_location;
+    return file_exists($file_location) ? $file_location : false;
+  }
+
+  /**
+   * Checks to see if the current theme has a color scheme file to load in
+   * @return bool
+   */
+  public function themeHasColorSchemeFile(){
+    if(!isset($this->colorSchemeFile)){
+      $this->colorSchemeFile = self::locateCssDirFile('customizer-variables.scss', 'network') === false ? false : true;
+    }
+
+    return $this->colorSchemeFile;
   }
 
   /**
