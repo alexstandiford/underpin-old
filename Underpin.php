@@ -106,7 +106,7 @@ class Underpin{
    * All of the admin-specific includes to grab. Pulls from the admin directory.
    * @var array
    */
-  private static $admin_files = [
+  private static $color_scheme_files = [
     'ColorSchemeFactory.php',      //Loads in the color scheme customizations
     'CssUpdater.php',              //Loads in the CSS Updater
     'CssSynchronizer.php',         //Handles CSS file syncing between theme and site css files
@@ -150,7 +150,9 @@ class Underpin{
       do_action('underpin_init');
       self::$instance->_defineThemeSupports();
       self::$instance->_includeEach(UNDERPIN_CORE_PATH, self::$core_files);
-      self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$admin_files);
+      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer',false)){
+        self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$color_scheme_files);
+      }
       self::$instance->_includeAutoloader();
       do_action('underpin_after_core_init');
       self::$instance->_includeEach(UNDERPIN_CONFIG_PATH, self::$config_files);
@@ -183,30 +185,47 @@ class Underpin{
       if(!is_super_admin()) add_filter('acf/settings/show_admin', '__return_false');
 
       /**
-       * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
+       * underpin_add_css_to_customizer
+       * Allows us to enable/disable the css Update functionality
+       * Set to false to disable this.
+       * add_filter(UNDERPIN_PREFIX.'_lazy_load_enabled','__return_false')
        */
-      add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
+      if(apply_filters(UNDERPIN_PREFIX.'_lazy_load_enabled',true)){
+        /**
+         * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
+         */
+        add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
 
-      /**
-       * Modifies image HTML to implement lazy-loaded images
-       */
-      add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
+        /**
+         * Modifies image HTML to implement lazy-loaded images
+         */
+        add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
+      }
+
 
       /**
        * Registers RESTful API endpoints related to theme
        */
       add_action('rest_api_init', [self::$instance, 'registerRestEndpoints']);
 
-      /**
-       * Runs the updater to recompile CSS when the customizer is saved
-       */
-      add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
 
       /**
-       * Handle preview CSS for color scheme customizer
+       * underpin_add_css_to_customizer
+       * Allows us to enable/disable the css Update functionality
+       * Set to true to enable this.
+       * add_filter(UNDERPIN_PREFIX.'_add_css_to_customizer','__return_true')
        */
-      add_action('wp_head', [self::$instance, 'updatePreviewCss']);
+      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer',false)){
+        /**
+         * Runs the updater to recompile CSS when the customizer is saved
+         */
+        add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
 
+        /**
+         * Handle preview CSS for color scheme customizer
+         */
+        add_action('wp_head', [self::$instance, 'updatePreviewCss']);
+      }
       do_action('underpin_after_init');
     }
 
@@ -294,7 +313,7 @@ class Underpin{
    * Loads in the CSS file
    */
   public function _loadStyles(){
-    if(file_exists(CssUpdater::getCssDirFile())){
+    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer',false) && file_exists(CssUpdater::getCssDirFile())){
       $css_url = CssUpdater::getCssFileUrl();
       //Sync the CSS file if the original file was updated recently
       CssSynchronizer::syncCssFile();
@@ -343,8 +362,10 @@ class Underpin{
   }
 
   public function setupCustomizer(){
-    $color_scheme = new ColorSchemeFactory();
-    add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
+    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer',false)){
+      $color_scheme = new ColorSchemeFactory();
+      add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
+    }
   }
 
   private function _loadCoreConfigurations(){

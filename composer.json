@@ -1,0 +1,11 @@
+{
+    "name": "alexstandiford/underpin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Standiford",
+            "email": "a@alexstandiford.com"
+        }
+    ],
+    "require": {}
+}
