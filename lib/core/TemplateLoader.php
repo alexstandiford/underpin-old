@@ -35,6 +35,14 @@ class TemplateLoader extends Core{
   }
 
   /**
+   * Gets the current module
+   * @return string
+   */
+  public function getModule(){
+    return $this->module;
+  }
+
+  /**
    * Required on every object to check for errors
    * @return mixed
    */
