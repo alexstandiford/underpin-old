@@ -36,9 +36,9 @@ abstract class ModuleLoader extends Core{
         ],
       ],
     ],
-    'hide_on_screen' => array(
+    'hide_on_screen' => [
       0 => 'the_content',
-    ),
+    ],
   ];
   protected $type = 'default';
   protected $moduleKey = false;
@@ -102,7 +102,7 @@ abstract class ModuleLoader extends Core{
    * Loads in ACF fields.
    */
   public static function registerFlexFieldGroup(){
-    if(function_exists('acf_add_local_field_group')) acf_add_local_field_group(self::$flexContentACFFields);
+    if(function_exists('acf_add_local_field_group')) acf_add_local_field_group(apply_filters('underpin_default_acf_fields',self::$flexContentACFFields));
   }
 
 
