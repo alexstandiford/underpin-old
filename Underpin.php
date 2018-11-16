@@ -37,57 +37,57 @@ class Underpin{
    * @var array
    */
   private static $customizer = [
-//    'contact_information' => [
-//      'title'       => 'Contact Information',
-//      'description' => 'Customize Your Contact Info',
-//      'priority'    => 50,
-//      'capability'  => 'edit_theme_options',
-//      'settings'    => [
-//        'company_logo'  => [
-//          'control_type' => 'WP_Customize_Image_Control',
-//          'default'      => '',
-//          'label'        => 'Upload your logo',
-//        ],
-//      ],
-//    ],
+    //    'contact_information' => [
+    //      'title'       => 'Contact Information',
+    //      'description' => 'Customize Your Contact Info',
+    //      'priority'    => 50,
+    //      'capability'  => 'edit_theme_options',
+    //      'settings'    => [
+    //        'company_logo'  => [
+    //          'control_type' => 'WP_Customize_Image_Control',
+    //          'default'      => '',
+    //          'label'        => 'Upload your logo',
+    //        ],
+    //      ],
+    //    ],
   ];
 
   private static $widgets = [
-//    'Sidebar' => [
-//      'description'   => '',
-//      'class'         => 'Sidebars-content',
-//      'before_widget' => '<div>',
-//      'after_widget'  => '</div>',
-//      'before_title'  => '<h3>',
-//      'after_title'   =>   '</h3>',
-//    ]
+    //    'Sidebar' => [
+    //      'description'   => '',
+    //      'class'         => 'Sidebars-content',
+    //      'before_widget' => '<div>',
+    //      'after_widget'  => '</div>',
+    //      'before_title'  => '<h3>',
+    //      'after_title'   =>   '</h3>',
+    //    ]
   ];
 
   private static $post_types = [
-//    'beers' => [
-//      'name'          => 'Beers',
-//      'singular_name' => 'Beer',
-//      'menu_icon'     => 'icons/beer-icon.png',
-//      'supports'      => ['title', 'editor', 'thumbnail'],
-//      'taxonomies'    => [
-//        'style'   => [
-//          'hierarchical' => true,
-//          'meta_box_cb' => 'metaBoxAsSelect',
-//          'rewrite'     => ['slug' => 'style'],
-//          'labels'       => [
-//            'label'       => ' Style',
-//          ],
-//        ],
-//        'pairing' => [
-//          'label'         => 'Pairings',
-//        ],
-//        'tags'    => [
-//          'name'          => 'Tags',
-//          'singular_name' => 'tag',
-//          'label'         => 'Tags',
-//        ],
-//      ],
-//    ],
+    //    'beers' => [
+    //      'name'          => 'Beers',
+    //      'singular_name' => 'Beer',
+    //      'menu_icon'     => 'icons/beer-icon.png',
+    //      'supports'      => ['title', 'editor', 'thumbnail'],
+    //      'taxonomies'    => [
+    //        'style'   => [
+    //          'hierarchical' => true,
+    //          'meta_box_cb' => 'metaBoxAsSelect',
+    //          'rewrite'     => ['slug' => 'style'],
+    //          'labels'       => [
+    //            'label'       => ' Style',
+    //          ],
+    //        ],
+    //        'pairing' => [
+    //          'label'         => 'Pairings',
+    //        ],
+    //        'tags'    => [
+    //          'name'          => 'Tags',
+    //          'singular_name' => 'tag',
+    //          'label'         => 'Tags',
+    //        ],
+    //      ],
+    //    ],
   ];
 
   /**
@@ -99,6 +99,15 @@ class Underpin{
     'Config.php',                  //Core Config Class. Used to implement configuration classes
     'ModuleLoader.php',            //Core Module Loader Class. Used to implement modules
     'TemplateLoader.php',          //Core Template Loader Class. Used to implement module templates
+    'api/ACFParser.php',           //Handles Gutenberg-related content parsing for REST
+    'api/BlogInfo.php',            //Spits out blog information for REST
+    'api/HomePage.php',            //Spits out home page info for REST
+    'api/NavMenu.php',             //Spits out Nav Menu for REST
+    'api/sidebar/Sidebar.php',     //Spits out Sidebar data for REST
+    'api/sidebar/Widget.php',      //Spits out Widget data for REST
+    'api/forms/Field.php',         //Handles Form Field data using for REST
+    'api/forms/Form.php',          //Handles Form data using REST
+    'api/routes/Routes.php',       //Gets site structure using REST
   ];
 
 
@@ -106,7 +115,7 @@ class Underpin{
    * All of the admin-specific includes to grab. Pulls from the admin directory.
    * @var array
    */
-  private static $admin_files = [
+  private static $color_scheme_files = [
     'ColorSchemeFactory.php',      //Loads in the color scheme customizations
     'CssUpdater.php',              //Loads in the CSS Updater
     'CssSynchronizer.php',         //Handles CSS file syncing between theme and site css files
@@ -122,6 +131,97 @@ class Underpin{
     'Customizer.php',      //Integrates Customizer Fields
     'Widgets.php',         //Integrates Sidebars
     'PostTypes.php',       //Integrates Custom Post Types
+  ];
+
+  private $rest_endpoints = [
+    [
+      'route'   => 'template/get',
+      'version' => 'v1',
+      'args'    => [
+        'methods'  => 'GET',
+        'callback' => '\underpin\Core\TemplateLoader::loadTemplateFromAPI',
+      ],
+    ],
+    [
+      'route'   => 'acf/data/(?P<id>[\d]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => 'GET',
+        'callback' => '\underpin\Core\ACFParser::getAcfFieldsForApiByID',
+      ],
+    ],
+    [
+      'route'   => 'acf/data/(?P<post_type>[\w-_]+)/(?P<slug>[\w-_]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => 'GET',
+        'callback' => '\underpin\Core\ACFParser::getAcfFieldsForApiBySlug',
+      ],
+    ],
+    [
+      'route'   => 'menu/(?P<slug>[\w-_]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\NavMenu::getMenuFromApi',
+      ],
+    ],
+    [
+      'route'   => 'routes/',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\Routes::getRoutesFromApi',
+      ],
+    ],
+    [
+      'route'   => 'menu/(?P<id>[\d]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\NavMenu::getMenuFromApi',
+      ],
+    ],
+    [
+      'route'   => 'menu/location/(?P<slug>[\w-_]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\NavMenu::getMenuByLocationFromApi',
+      ],
+    ],
+    [
+      'route'   => 'home-page/get',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\HomePage::getHomePageFromApi',
+      ],
+    ],
+    [
+      'route'   => 'blog-info/get',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\BlogInfo::getBlogInfoFromApi',
+      ],
+    ],
+    [
+      'route'   => 'form/(?P<form_id>[\d]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\forms\Form::getFormFieldsFromApi',
+      ],
+    ],
+    [
+      'route'   => 'sidebar/(?P<sidebar>[\w-_]+)',
+      'version' => 'v2',
+      'args'    => [
+        'methods'  => ['GET'],
+        'callback' => '\underpin\Core\sidebar\Sidebar::getSidebarWidgetsForApi',
+      ],
+    ],
   ];
 
   /**
@@ -150,7 +250,9 @@ class Underpin{
       do_action('underpin_init');
       self::$instance->_defineThemeSupports();
       self::$instance->_includeEach(UNDERPIN_CORE_PATH, self::$core_files);
-      self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$admin_files);
+      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
+        self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$color_scheme_files);
+      }
       self::$instance->_includeAutoloader();
       do_action('underpin_after_core_init');
       self::$instance->_includeEach(UNDERPIN_CONFIG_PATH, self::$config_files);
@@ -183,30 +285,47 @@ class Underpin{
       if(!is_super_admin()) add_filter('acf/settings/show_admin', '__return_false');
 
       /**
-       * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
+       * underpin_add_css_to_customizer
+       * Allows us to enable/disable the css Update functionality
+       * Set to false to disable this.
+       * add_filter(UNDERPIN_PREFIX.'_lazy_load_enabled','__return_false')
        */
-      add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
+      if(apply_filters(UNDERPIN_PREFIX.'_lazy_load_enabled', true)){
+        /**
+         * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
+         */
+        add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
 
-      /**
-       * Modifies image HTML to implement lazy-loaded images
-       */
-      add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
+        /**
+         * Modifies image HTML to implement lazy-loaded images
+         */
+        add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
+      }
+
 
       /**
        * Registers RESTful API endpoints related to theme
        */
       add_action('rest_api_init', [self::$instance, 'registerRestEndpoints']);
 
-      /**
-       * Runs the updater to recompile CSS when the customizer is saved
-       */
-      add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
 
       /**
-       * Handle preview CSS for color scheme customizer
+       * underpin_add_css_to_customizer
+       * Allows us to enable/disable the css Update functionality
+       * Set to true to enable this.
+       * add_filter(UNDERPIN_PREFIX.'_add_css_to_customizer','__return_true')
        */
-      add_action('wp_head', [self::$instance, 'updatePreviewCss']);
+      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
+        /**
+         * Runs the updater to recompile CSS when the customizer is saved
+         */
+        add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
 
+        /**
+         * Handle preview CSS for color scheme customizer
+         */
+        add_action('wp_head', [self::$instance, 'updatePreviewCss']);
+      }
       do_action('underpin_after_init');
     }
 
@@ -225,10 +344,9 @@ class Underpin{
    */
   //TODO: Expand this to run as a config class
   public function registerRestEndpoints(){
-    register_rest_route('underpin/v1', '/template/get', array(
-      'methods'  => 'GET',
-      'callback' => '\underpin\Core\TemplateLoader::loadTemplateFromAPI',
-    ));
+    foreach($this->rest_endpoints as $rest_endpoint){
+      register_rest_route('underpin/'.$rest_endpoint['version'], $rest_endpoint['route'], $rest_endpoint['args']);
+    }
   }
 
   /**
@@ -294,7 +412,7 @@ class Underpin{
    * Loads in the CSS file
    */
   public function _loadStyles(){
-    if(file_exists(CssUpdater::getCssDirFile())){
+    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false) && file_exists(CssUpdater::getCssDirFile())){
       $css_url = CssUpdater::getCssFileUrl();
       //Sync the CSS file if the original file was updated recently
       CssSynchronizer::syncCssFile();
@@ -343,8 +461,10 @@ class Underpin{
   }
 
   public function setupCustomizer(){
-    $color_scheme = new ColorSchemeFactory();
-    add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
+    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
+      $color_scheme = new ColorSchemeFactory();
+      add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
+    }
   }
 
   private function _loadCoreConfigurations(){

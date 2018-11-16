@@ -1,0 +1,15 @@
+{
+    "name": "alexstandiford/underpin",
+    "license": "MIT",
+    "type": "wordpress-muplugin",
+
+    "authors": [
+        {
+            "name": "Alex Standiford",
+            "email": "a@alexstandiford.com"
+        }
+    ],
+    "require": {
+        "composer/installers": "~1.0"
+    }
+}
