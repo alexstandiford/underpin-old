@@ -33,7 +33,7 @@ abstract class ModuleLoader extends Core{
   protected $moduleFields = false;
   protected $rootDirectory;
   protected $rootUrl;
-  private static $defaultOptionsAreSet = false;
+  protected $moduleDescription = '';
 
   public function __construct($file){
     $this->moduleKey = $this->sanitizeModuleKey($this->moduleName);
