@@ -86,8 +86,13 @@ abstract class ModuleLoader extends Core{
     }
   }
 
+  public function snakeCaseModuleKey(){
+    return str_replace('-', '_', $this->moduleKey);
+  }
+
   /**
    * Sanitizes the module key for use within the loader
+   *
    * @param $module_key
    *
    * @return string
