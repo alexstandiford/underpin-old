@@ -15,30 +15,16 @@ if(!defined('ABSPATH')) exit;
 abstract class ModuleLoader extends Core{
 
   public static $modules = [];
-  private static $flexContentACFFields = [
-    'key'            => 'underpin_group',
-    'title'          => 'Underpin Group',
-    'fields'         => [
-      [
-        'key'     => 'underpin_flex_content',
-        'label'   => 'Underpin',
-        'name'    => 'underpin_flex_content',
-        'type'    => 'flexible_content',
-        'layouts' => [],
-      ],
-    ],
+  private $flexContentACFFields = [
+    'fields'         => [],
     'location'       => [
       [
         [
-          'param'    => 'post_type',
+          'param'    => 'block',
           'operator' => '==',
-          'value'    => 'page',
         ],
       ],
     ],
-    'hide_on_screen' => array(
-      0 => 'the_content',
-    ),
   ];
   protected $type = 'default';
   protected $moduleKey = false;
