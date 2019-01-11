@@ -102,13 +102,14 @@ abstract class ModuleLoader extends Core{
   }
 
   /**
-  /**
-   * Loads in ACF fields.
+   * Loads in ACF fields and blocks.
+   * Fires on acf/init in the underpin core file
    */
   public static function registerFieldGroups(){
     if(function_exists('acf_add_local_field_group')){
       foreach(self::$modules as $module){
-        if($module['field_type'] === 'default') acf_add_local_field_group($module['fields']);
+        acf_add_local_field_group($module['fields']);
+        acf_register_block($module['block']);
       }
     }
   }
