@@ -102,13 +102,6 @@ abstract class ModuleLoader extends Core{
   }
 
   /**
-   * Loads in ACF fields.
-   */
-  public static function registerFlexFieldGroup(){
-    if(function_exists('acf_add_local_field_group')) acf_add_local_field_group(self::$flexContentACFFields);
-  }
-
-
   /**
    * Loads in ACF fields.
    */
