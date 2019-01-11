@@ -41,36 +41,48 @@ abstract class ModuleLoader extends Core{
 
     if(!$this->hasErrors()){
       $this->rootDirectory = plugin_dir_path($file);
-      //If we're dealing with a module that supports ACF flexible content, set it up
-      if($this->type == 'flexField'){
-        if(!self::$defaultOptionsAreSet) $this->registerDefaultModuleOptions();
-        $this->moduleFields['name'] = $this->moduleKey;
-      }
 
-      //moduleFields are filtered via theme_prefix + _module_key + _module_fields
-      $this->moduleFields = apply_filters($this->prefix(str_replace('-', '_', $this->moduleKey).'_module_fields'), $this->moduleFields);
-      self::$modules[$this->moduleKey] = [
-        'name'           => $this->moduleName,
-        'fields'         => $this->moduleFields,
-        'field_type'     => $this->type,
-        'root_directory' => $this->rootDirectory.'templates',
+
+
+  /**
+   * Builds the fields array
+   */
+  public function constructFields(){
+    $this->flexContentACFFields = wp_parse_args([
+      'key'   => $this->moduleKey,
+      'title' => $this->moduleName,
+    ], $this->flexContentACFFields);
+
+
+    //Set the value of the block this will connect with
+    $this->flexContentACFFields['location'][0][0]['value'] = 'acf/'.$this->moduleKey;
+
+    //Add the fields
+    $this->flexContentACFFields['fields'] = $this->type === 'flexField' ? $this->moduleFields['sub_fields'] : $this->moduleFields;
+
+    //Prepend default wrapper fields
+    $this->flexContentACFFields['fields'] = array_merge($this->getDefaultModuleOptions(), $this->flexContentACFFields['fields']);
+
+  }
+
+  /**
+   * Registers a template so that it can be used in the template loader system
+   * Also stores the fields so ACF can loop through and create these fields in the system
+   */
+  private function registerModule(){
+    self::$modules[$this->moduleKey] = [
+      'name'           => $this->moduleName,
+      'field_type'     => $this->type,
+      'fields'         => $this->flexContentACFFields,
+      'root_directory' => $this->rootDirectory.'templates',
+    ];
+
+    if($this->type === 'flexField' || $this->type === 'block'){
+      self::$modules[$this->moduleKey]['block'] = [
+        'name'        => $this->moduleKey,
+        'title'       => __($this->moduleName),
+        'description' => __($this->moduleDescription),
       ];
-
-      if($this->type == 'flexField'){
-        self::$flexContentACFFields['fields'][0]['layouts'][$this->moduleFields['key']] = $this->moduleFields;
-        //Add default wrapper fields
-        array_unshift(self::$flexContentACFFields['fields'][0]['layouts'][$this->moduleFields['key']]['sub_fields'], [
-          'key'     => $this->moduleFields['key'].'_default_options',
-          'label'   => 'Module Options',
-          'name'    => 'default_options',
-          'type'    => 'clone',
-          'clone'   => [
-            0 => 'module_settings',
-          ],
-          'display' => 'seamless',
-          'layout'  => 'block',
-        ]);
-      }
     }
   }
 
