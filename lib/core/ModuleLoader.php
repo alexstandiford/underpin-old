@@ -131,43 +131,8 @@ abstract class ModuleLoader extends Core{
   /**
    * Registers the default module options, which are used on all modules that use ACF
    */
-  private function registerDefaultModuleOptions(){
+  private function getDefaultModuleOptions(){
     if(function_exists('acf_add_local_field_group')){
-      $default_module_settings_group = [
-        'key'                   => 'underpin_default_module_settings_group',
-        'title'                 => 'Field Group',
-        'fields'                => [
-          [
-            'key'    => 'module_settings',
-            'label'  => 'Module Settings',
-            'name'   => 'module_settings',
-            'type'   => 'group',
-            'layout' => 'block',
-          ],
-        ],
-        'location'              => [
-          [
-            [
-              'param'    => 'post_type',
-              'operator' => '==',
-              'value'    => 'post',
-            ],
-            [
-              'param'    => 'post_type',
-              'operator' => '!=',
-              'value'    => 'post',
-            ],
-          ],
-        ],
-        'menu_order'            => 0,
-        'position'              => 'normal',
-        'style'                 => 'default',
-        'label_placement'       => 'top',
-        'instruction_placement' => 'label',
-        'hide_on_screen'        => '',
-        'active'                => 1,
-        'description'           => '',
-      ];
       $default_module_settings_fields = [
         [
           'key'           => 'underpin_flex_field_color_scheme',
