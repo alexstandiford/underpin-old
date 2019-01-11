@@ -184,7 +184,7 @@ abstract class ModuleLoader extends Core{
           'class'         => '',
           'return_format' => '',
           'wrapper'       => [
-            'width' => '25',
+            'width' => '50',
             'class' => '',
             'id'    => '',
           ],
@@ -215,7 +215,7 @@ abstract class ModuleLoader extends Core{
           'class'         => '',
           'return_format' => '',
           'wrapper'       => [
-            'width' => '25',
+            'width' => '50',
             'class' => '',
             'id'    => '',
           ],
@@ -246,7 +246,7 @@ abstract class ModuleLoader extends Core{
           'class'         => '',
           'return_format' => '',
           'wrapper'       => [
-            'width' => '25',
+            'width' => '50',
             'class' => '',
             'id'    => '',
           ],
@@ -277,7 +277,7 @@ abstract class ModuleLoader extends Core{
           'class'         => '',
           'return_format' => '',
           'wrapper'       => [
-            'width' => '25',
+            'width' => '50',
             'class' => '',
             'id'    => '',
           ],
@@ -289,10 +289,9 @@ abstract class ModuleLoader extends Core{
         ],
 
       ];
-      $default_module_settings_group['fields'][0]['sub_fields'] = apply_filters($this->prefix('default_module_settings_fields'), $default_module_settings_fields, $default_module_settings_fields);
-      acf_add_local_field_group($default_module_settings_group);
+
+      return apply_filters($this->prefix('default_settings_fields'), $default_module_settings_fields, $this->moduleKey);
     }
-    self::$defaultOptionsAreSet = true;
   }
 
 
@@ -305,6 +304,7 @@ abstract class ModuleLoader extends Core{
    */
   public static function moduleIsLoaded($module_key){
     $module_key = self::sanitizeModuleKey($module_key);
+
     return array_key_exists($module_key, self::$modules);
   }
 
@@ -327,6 +327,7 @@ abstract class ModuleLoader extends Core{
 
   /**
    * Gets the root URL of the specified module
+   *
    * @param $module_key
    *
    * @return bool|string
@@ -368,7 +369,9 @@ abstract class ModuleLoader extends Core{
    */
   public static function isFlexible($module_key){
     $module_key = self::sanitizeModuleKey($module_key);
-    return self::$modules[$module_key]['field_type'] == 'flexField';
+    $type = self::$modules[$module_key]['field_type'];
+
+    return $type === 'flexField' || $type === 'block';
   }
 
   /**
