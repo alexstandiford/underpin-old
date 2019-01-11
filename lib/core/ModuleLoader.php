@@ -42,7 +42,21 @@ abstract class ModuleLoader extends Core{
     if(!$this->hasErrors()){
       $this->rootDirectory = plugin_dir_path($file);
 
+      /**
+       * Provides a way to override the fields that are used on a given block
+       * Filter name is based on what block you wish to filter
+       * underpin_block_name_module_fields
+       */
+      $module_fields = apply_filters($this->prefix($this->snakeCaseModuleKey()).'_module_fields', $this->moduleFields);
+      $this->moduleFields = is_array($module_fields) ? $module_fields : [];
 
+      //Constructs the fields array before registration
+      if($this->type === 'block' || $this->type === 'flexField') $this->constructFields();
+
+      //Register this module so that it can be used in the template loader system
+      $this->registerModule();
+    }
+  }
 
   /**
    * Builds the fields array
