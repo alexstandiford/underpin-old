@@ -96,6 +96,9 @@ abstract class ModuleLoader extends Core{
         'name'        => $this->moduleKey,
         'title'       => __($this->moduleName),
         'description' => __($this->moduleDescription),
+        'render_callback' => function($block){
+          TemplateLoader::getTemplate($this->moduleKey,'default','default',['block' => $block]);
+        }
       ];
     }
   }
