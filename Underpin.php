@@ -260,11 +260,6 @@ class Underpin{
       do_action('underpin_load_configurations');
 
       /**
-       * Registers the flexible field group that houses all module ACF fields
-       */
-      add_action('acf/init', ['underpin\core\ModuleLoader', 'registerFlexFieldGroup']);
-
-      /**
        * Registers ACF fields for modules
        */
       add_action('acf/init', ['underpin\core\ModuleLoader', 'registerFieldGroups']);
@@ -273,35 +268,13 @@ class Underpin{
        * Loads the compiled JS file
        */
       add_action('wp_enqueue_scripts', [self::$instance, '_loadScripts']);
+      add_action('admin_enqueue_scripts', [self::$instance, '_loadScripts']);
 
       /**
        * Loads the compiled CSS file
        */
       add_action('wp_enqueue_scripts', [self::$instance, '_loadStyles']);
-
-      /**
-       * Removes ACF from the admin area
-       */
-      if(!is_super_admin()) add_filter('acf/settings/show_admin', '__return_false');
-
-      /**
-       * underpin_add_css_to_customizer
-       * Allows us to enable/disable the css Update functionality
-       * Set to false to disable this.
-       * add_filter(UNDERPIN_PREFIX.'_lazy_load_enabled','__return_false')
-       */
-      if(apply_filters(UNDERPIN_PREFIX.'_lazy_load_enabled', true)){
-        /**
-         * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
-         */
-        add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
-
-        /**
-         * Modifies image HTML to implement lazy-loaded images
-         */
-        add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
-      }
-
+      add_action('after_setup_theme', [self::$instance, '_loadStyles']);
 
       /**
        * Registers RESTful API endpoints related to theme
@@ -360,7 +333,6 @@ class Underpin{
     $attributes['data-src'] = $attributes['src'];
     $attributes['src'] = wp_get_attachment_image_url($attachment->ID, 'lazy-load');
     $attributes['class'] .= " mod--lazyload";
-    unset($attributes['srcset']);
 
     return $attributes;
   }
@@ -420,7 +392,28 @@ class Underpin{
     else{
       $css_url = get_stylesheet_directory_uri().'/build/assets/style.css';
     }
-    wp_enqueue_style('underpin_style', $css_url);
+
+    if(is_admin()){
+
+      /**
+       * underpin_enable_editor_styles
+       * Allows theme developers to force-disable the stylesheet to display in Gutenberg
+       */
+      if(apply_filters('underpin_enable_editor_styles',true)){
+        /**
+         * underpin_admin_styles_url
+         * Allows theme developers to specify the editor stylesheet
+         * Useful in situations where you need to compile a different stylesheet for the admin interface
+         */
+        $css_url = apply_filters('underpin_admin_styles_url', $css_url);
+
+        add_theme_support('editor-styles');
+        add_editor_style($css_url);
+      }
+    }
+    else{
+      wp_enqueue_style('underpin_style', $css_url);
+    }
   }
 
   /**
