@@ -52,6 +52,35 @@ abstract class Core{
   }
 
   /**
+   * Wrapper Function for get_field
+   * Should be used instead of default get_field function to ensure future compatibility
+   *
+   * @param      $field
+   *
+   * @param bool $post_id
+   * @param bool $format_value
+   *
+   * @return mixed|null
+   */
+  public function getField($field, $post_id = false, $format_value = true){
+    if(function_exists('get_field')) return get_field($field, $post_id, $format_value);
+  }
+
+  /**
+   * Wrapper Function for get_sub_field
+   * Should be used instead of default get_field function to ensure future compatibility
+   *
+   * @param string $field
+   *
+   * @param bool   $format_value
+   *
+   * @return mixed|null
+   */
+  public function getSubField($field = '', $format_value = true){
+    if(function_exists('get_field')) return get_sub_field($field, $format_value);
+  }
+
+  /**
    * Used to return a result for API endpoints. Handles proper error returning when there are any errors
    *
    * @param $result
@@ -175,11 +204,11 @@ abstract class Core{
    *
    * @return bool
    */
-  public function deleteOption($option,$blog_id = false){
+  public function deleteOption($option, $blog_id = false){
     $option = $this->prefix(str_replace('-', '_', sanitize_title_with_dashes($option)));
 
     if(is_multisite() && is_int($blog_id)){
-      $result = delete_blog_option($blog_id,$option);
+      $result = delete_blog_option($blog_id, $option);
     }
     else{
       $result = delete_option($option);

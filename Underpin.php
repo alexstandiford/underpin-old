@@ -241,11 +241,6 @@ class Underpin{
       do_action('underpin_load_configurations');
 
       /**
-       * Registers the flexible field group that houses all module ACF fields
-       */
-      add_action('acf/init', ['underpin\core\ModuleLoader', 'registerFlexFieldGroup']);
-
-      /**
        * Registers ACF fields for modules
        */
       add_action('acf/init', ['underpin\core\ModuleLoader', 'registerFieldGroups']);
@@ -254,6 +249,7 @@ class Underpin{
        * Loads the compiled JS file
        */
       add_action('wp_enqueue_scripts', [self::$instance, '_loadScripts']);
+      add_action('admin_enqueue_scripts', [self::$instance, '_loadScripts']);
 
       /**
        * Loads the compiled CSS file
