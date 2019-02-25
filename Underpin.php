@@ -8,10 +8,6 @@
 
 namespace underpin\core;
 
-use DOMDocument;
-use underpin\admin\ColorSchemeFactory;
-use underpin\admin\CssSynchronizer;
-use underpin\admin\CssUpdater;
 use underpin\config\Customizer;
 use underpin\config\ImageSizes;
 use underpin\config\PostTypes;
@@ -109,18 +105,6 @@ class Underpin{
     'api/forms/Form.php',          //Handles Form data using REST
     'api/routes/Routes.php',       //Gets site structure using REST
   ];
-
-
-  /**
-   * All of the admin-specific includes to grab. Pulls from the admin directory.
-   * @var array
-   */
-  private static $color_scheme_files = [
-    'ColorSchemeFactory.php',      //Loads in the color scheme customizations
-    'CssUpdater.php',              //Loads in the CSS Updater
-    'CssSynchronizer.php',         //Handles CSS file syncing between theme and site css files
-  ];
-
 
   /**
    * All of the non-template functionality includes to grab. Pulls from the app directory.
@@ -250,9 +234,6 @@ class Underpin{
       do_action('underpin_init');
       self::$instance->_defineThemeSupports();
       self::$instance->_includeEach(UNDERPIN_CORE_PATH, self::$core_files);
-      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
-        self::$instance->_includeEach(UNDERPIN_LIB_PATH.'admin/', self::$color_scheme_files);
-      }
       self::$instance->_includeAutoloader();
       do_action('underpin_after_core_init');
       self::$instance->_includeEach(UNDERPIN_CONFIG_PATH, self::$config_files);
@@ -307,25 +288,6 @@ class Underpin{
        * Registers RESTful API endpoints related to theme
        */
       add_action('rest_api_init', [self::$instance, 'registerRestEndpoints']);
-
-
-      /**
-       * underpin_add_css_to_customizer
-       * Allows us to enable/disable the css Update functionality
-       * Set to true to enable this.
-       * add_filter(UNDERPIN_PREFIX.'_add_css_to_customizer','__return_true')
-       */
-      if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
-        /**
-         * Runs the updater to recompile CSS when the customizer is saved
-         */
-        add_action('customize_save', 'underpin\admin\CssUpdater::runUpdater');
-
-        /**
-         * Handle preview CSS for color scheme customizer
-         */
-        add_action('wp_head', [self::$instance, 'updatePreviewCss']);
-      }
       do_action('underpin_after_init');
     }
 
@@ -350,50 +312,6 @@ class Underpin{
   }
 
   /**
-   * Adds the extra data attributes to work with lazy loader
-   *
-   * @param $attributes
-   *
-   * @return mixed
-   */
-  public static function _buildLazyLoadSupport($attributes, $attachment){
-    $attributes['data-src'] = $attributes['src'];
-    $attributes['src'] = wp_get_attachment_image_url($attachment->ID, 'lazy-load');
-    $attributes['class'] .= " mod--lazyload";
-    unset($attributes['srcset']);
-
-    return $attributes;
-  }
-
-  /**
-   * Implements lazy loading support for WYSIWYG content
-   *
-   * @param $content
-   *
-   * @return string
-   */
-  public static function _buildLazyLoadContentSupport($content){
-    if(!is_singular() || !$content) return $content; //bail early if this isn't a single blog post
-    libxml_use_internal_errors(true);
-    global $wpdb;
-    $post = new DOMDocument();
-    $post->loadHTML($content);
-    //Get the images
-    $images = $post->getElementsByTagName('img');
-
-    foreach($images as $img){
-      $src = $img->getAttribute('src');
-      $img->setAttribute('data-src', $src);
-      $attachment = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $src));
-      if(isset($attachment[0])) $img->setAttribute('src', wp_get_attachment_image_url($attachment[0], 'lazy-load'));
-      $imgClass = $img->getAttribute('class');
-      $img->setAttribute('class', $imgClass.' mod--lazyload');
-    };
-
-    return $post->saveHTML();
-  }
-
-  /**
    * Loads in the JavaScript files and passes script values
    */
   public function _loadScripts(){
@@ -412,37 +330,31 @@ class Underpin{
    * Loads in the CSS file
    */
   public function _loadStyles(){
-    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false) && file_exists(CssUpdater::getCssDirFile())){
-      $css_url = CssUpdater::getCssFileUrl();
-      //Sync the CSS file if the original file was updated recently
-      CssSynchronizer::syncCssFile();
-    }
-    else{
-      $css_url = get_stylesheet_directory_uri().'/build/assets/style.css';
-    }
-    wp_enqueue_style('underpin_style', $css_url);
-  }
+    $css_url = get_stylesheet_directory_uri().'/build/assets/style.css';
 
-  /**
-   * Updates the preview CSS
-   */
-  //TODO: Improve this function to actually use SCSS compiler instead of a basic grep
-  public function updatePreviewCss(){
-    if(!empty ($GLOBALS['wp_customize'])){
-      $color_scheme = new ColorSchemeFactory();
-      if($color_scheme->themeHasColorSchemeFile()){
-        $css = file_exists(CssUpdater::getCssDirFile()) ? CssUpdater::getCssDirFile() : get_stylesheet_directory().'/build/assets/style.css';
-        $css = file_get_contents($css);
-        foreach($color_scheme->splitValues() as $selector => $old_value){
-          $new_value = get_theme_mod('underpin_color_scheme_'.$selector);
-          if($old_value != $new_value){
-            $css = str_replace($old_value, $new_value, $css);
-          }
-        }
-        echo '<style id="underpin-color-scheme">'.$css.'</style>';
+    if(is_admin()){
+
+      /**
+       * underpin_enable_editor_styles
+       * Allows theme developers to force-disable the stylesheet to display in Gutenberg
+       */
+      if(apply_filters('underpin_enable_editor_styles',true)){
+        /**
+         * underpin_admin_styles_url
+         * Allows theme developers to specify the editor stylesheet
+         * Useful in situations where you need to compile a different stylesheet for the admin interface
+         */
+        $css_url = apply_filters('underpin_admin_styles_url', $css_url);
+
+        add_theme_support('editor-styles');
+        add_editor_style($css_url);
       }
     }
+    else{
+      wp_enqueue_style('underpin_style', $css_url);
+    }
   }
+
 
   /**
    * Defines the constants related to the theme
@@ -460,15 +372,7 @@ class Underpin{
     define('UNDERPIN_PREFIX', 'underpin');
   }
 
-  public function setupCustomizer(){
-    if(apply_filters(UNDERPIN_PREFIX.'_add_css_to_customizer', false)){
-      $color_scheme = new ColorSchemeFactory();
-      add_filter('underpin_customizer_config', [$color_scheme, 'addCustomizerFields']);
-    }
-  }
-
   private function _loadCoreConfigurations(){
-    $this->setupCustomizer();
     new imageSizes(self::$image_sizes);
     new Customizer(self::$customizer);
     new Widgets(self::$widgets);
