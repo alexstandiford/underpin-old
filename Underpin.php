@@ -266,25 +266,6 @@ class Underpin{
       if(!is_super_admin()) add_filter('acf/settings/show_admin', '__return_false');
 
       /**
-       * underpin_add_css_to_customizer
-       * Allows us to enable/disable the css Update functionality
-       * Set to false to disable this.
-       * add_filter(UNDERPIN_PREFIX.'_lazy_load_enabled','__return_false')
-       */
-      if(apply_filters(UNDERPIN_PREFIX.'_lazy_load_enabled', true)){
-        /**
-         * Modifies uploaded image HTML to implement lazy-loaded image markup on-upload
-         */
-        add_action('wp_get_attachment_image_attributes', [self::$instance, '_buildLazyLoadSupport'], 10, 2);
-
-        /**
-         * Modifies image HTML to implement lazy-loaded images
-         */
-        add_filter('the_content', [self::$instance, '_buildLazyLoadContentSupport'], 15);
-      }
-
-
-      /**
        * Registers RESTful API endpoints related to theme
        */
       add_action('rest_api_init', [self::$instance, 'registerRestEndpoints']);
