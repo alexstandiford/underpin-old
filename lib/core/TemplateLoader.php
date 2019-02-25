@@ -196,9 +196,9 @@ class TemplateLoader extends Core{
    * @return mixed
    */
   private function getModuleDefaultClasses(){
-    $default_fields = get_sub_field('module_settings');
+    $default_fields = $this->getField('module_settings');
     $module_default_classes = [
-      $this->prefix('flex-module', '-'),
+      $this->prefix('module', '-'),
     ];
     if($default_fields){
       foreach($default_fields as $field_name => $default_field){
